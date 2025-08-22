@@ -1,0 +1,163 @@
+<div class="min-h-screen bg-gray-50">
+  <!-- Header -->
+  <header class="bg-white shadow-sm border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16">
+        <h1 class="text-2xl font-bold text-gray-900">Inventory Store</h1>
+        <div class="flex items-center space-x-4">
+          <div class="relative">
+            <button 
+              [routerLink]="['/checkout']"
+              class="btn-primary relative">
+              Cart
+              @if (cartItemCount > 0) {
+                <span class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full text-xs w-5 h-5 flex items-center justify-center">
+                  {{ cartItemCount }}
+                </span>
+              }
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Filters Section -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Search -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
+          <input 
+            type="text" 
+            [(ngModel)]="filters.search"
+            (input)="onSearchChange($event)"
+            placeholder="Search products..."
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500">
+        </div>
+
+        <!-- Category Filter -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
+          <select 
+            [(ngModel)]="filters.category"
+            (change)="loadProducts()"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500">
+            <option value="">All Categories</option>
+            <option value="Beverages">Beverages</option>
+            <option value="Snacks">Snacks</option>
+            <option value="Electronics">Electronics</option>
+            <option value="Clothing">Clothing</option>
+            <option value="Books">Books</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
+        <!-- Price Range -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Min Price</label>
+          <input 
+            type="number" 
+            [(ngModel)]="filters.minPrice"
+            (change)="loadProducts()"
+            placeholder="Min price"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500">
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Max Price</label>
+          <input 
+            type="number" 
+            [(ngModel)]="filters.maxPrice"
+            (change)="loadProducts()"
+            placeholder="Max price"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500">
+        </div>
+      </div>
+
+      <!-- Sort and Actions -->
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mt-4 space-y-4 sm:space-y-0">
+        <div class="flex items-center space-x-4">
+          <label class="text-sm font-medium text-gray-700">Sort by:</label>
+          <select 
+            [(ngModel)]="filters.sortBy"
+            (change)="loadProducts()"
+            class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500">
+            <option value="createdAt">Date Added</option>
+            <option value="name">Name</option>
+            <option value="price">Price</option>
+            <option value="stock">Stock</option>
+          </select>
+          
+          <select 
+            [(ngModel)]="filters.sortOrder"
+            (change)="loadProducts()"
+            class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500">
+            <option value="asc">Ascending</option>
+            <option value="desc">Descending</option>
+          </select>
+        </div>
+
+        <button 
+          (click)="clearFilters()"
+          class="btn-secondary">
+          Clear Filters
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    @if (loading) {
+      <div class="text-center py-8">
+        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+        <p class="mt-2 text-gray-600">Loading products...</p>
+      </div>
+    }
+
+    <!-- Products Grid -->
+    @if (!loading && products.length > 0) {
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+        @for (product of products; track product._id) {
+          <app-product-card 
+            [product]="product"
+            [searchTerm]="filters.search || ''"
+            (addToCartEvent)="onAddToCart($event)">
+          </app-product-card>
+        }
+      </div>
+    }
+
+    <!-- Empty State -->
+    @if (!loading && products.length === 0) {
+      <div class="text-center py-16">
+        <div class="text-gray-400 text-6xl mb-4">📦</div>
+        <h3 class="text-lg font-medium text-gray-900 mb-2">No products found</h3>
+        <p class="text-gray-500">Try adjusting your search or filter criteria.</p>
+      </div>
+    }
+
+    <!-- Pagination -->
+    @if (pagination && pagination.pages > 1) {
+      <div class="flex justify-center items-center space-x-2">
+        <button 
+          (click)="goToPage(pagination.current - 1)"
+          [disabled]="pagination.current <= 1"
+          class="px-3 py-2 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50">
+          Previous
+        </button>
+
+        <span class="px-4 py-2 text-sm text-gray-700">
+          Page {{ pagination.current }} of {{ pagination.pages }}
+        </span>
+
+        <button 
+          (click)="goToPage(pagination.current + 1)"
+          [disabled]="pagination.current >= pagination.pages"
+          class="px-3 py-2 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50">
+          Next
+        </button>
+      </div>
+    }
+  </div>
+</div>
