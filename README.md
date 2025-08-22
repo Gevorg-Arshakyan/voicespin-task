@@ -50,21 +50,18 @@ A modern MEAN stack application for inventory and order management.
    cd backend
    npm run dev
    ```
-   The API will be available at `http://localhost:3000`
 
 2. **Seed the Database** (Optional)
    ```bash
    cd backend
    npm run seed
    ```
-   This will populate the database with sample products and orders.
 
 3. **Start the Frontend**
    ```bash
    cd frontend
    npm start
    ```
-   The application will be available at `http://localhost:4200`
 
 
 
